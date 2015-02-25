@@ -24,24 +24,32 @@
 // 3. Destructuring
 // ---
 (function destructuringExample() {
+  // note: remember that in destructuring assignments "target <= source"
+  // and not "source => target" like we used to see it;
+  // thus, you have to train your brain for the inversion
+
+  // array destructuring assignment
   let [foo, bar] = ['hello', 'world', 'another value', 'last value'];
   console.log(foo, ', ', bar); // hello , world
 
+  // swap
   [foo, bar] = [bar, foo];
   console.log(foo, ', ', bar); // world , hello
 
+  // array destructuring assignment with gathering the rest into an array
   let [wild, ...rest] = ['hello', 'world', 'foo', 'bar'];
   console.log(wild); // hello
   console.log(rest); // world,foo,bar
 
-  var obj = {
-    prop1: 'hello',
-    prop2: 'world'
-  };
-  let {
-    prop1: a1,
-    prop2: a2
-  } = obj;
+  // object destructuring assignment
+  function giveMeObj() {
+    return {
+      prop1: 'hello',
+      prop2: 'world'
+    };
+  }
+
+  let { prop1: a1, prop2: a2 } = giveMeObj();
   console.log(a1, a2); // hello world
 })();
 
@@ -85,26 +93,106 @@
   };
   say.word(); // word
   say.word('another word'); // another word
+
+  // null, undefined, and more...
+  function sum(x = 1, y = 5) {
+    return x + y;
+  }
+  console.log(sum(2, 10)); // 12
+  console.log(sum(10)); // 15
+  console.log(sum(null, null)); // 0
+  console.log(sum()); // 6
+  console.log(sum(null, 10)); // 10
+  console.log(sum(undefined, 2)); // 3
+  console.log(sum(undefined, undefined)); // 6
+
+  // expression as a default value
+  function power_sum(x = 2, y = 3, z = sum(x, y)) {
+    return z;
+  }
+  console.log(power_sum(1, 2)); // 3
+  console.log(power_sum(10, 5)); // 15
+  console.log(power_sum(5, null)); // 5
+  console.log(power_sum(null, undefined)); // 3
+  console.log(power_sum(null, null)); // 0
+  console.log(power_sum()); // 5
+  console.log(power_sum(null, null, 99)); // 99
+
+  // ajax done right \o/
+  function ajax(data, cb = window.Function.prototype) {
+    // ..
+    cb('error', 'response');
+  }
+  ajax({ url: '/test.me' });
+  ajax({ url: '/test.me' }, function (err, data) {
+    console.log(err, data);
+  });
 })();
 
 
-// 6. Spread & rest
+// 6. Computed property names
 // ---
-(function spread() {
-  var args = ['A', 'B', 'C', 'D'];
+(function computedProps() {
+  var prefix = 'scope_';
 
-  let processArgs = (first, ...rest) => {
+  // old school way
+  var oldWayObj = {};
+  oldWayObj[prefix + 'x'] = 'value x';
+  oldWayObj[prefix + 'y'] = 'value y';
+  console.log(window.JSON.stringify(oldWayObj)); // {"scope_x":"value x","scope_y":"value y"}
+
+  // es6 way
+  var es6Obj = {
+    [prefix + 'x']: 'value x',
+    [prefix + 'y']: 'value y'
+  };
+  console.log(window.JSON.stringify(es6Obj)); // {"scope_x":"value x","scope_y":"value y"}
+})();
+
+
+// 7. Spread & rest
+// ---
+(function spreadAndRest1() {
+  // in the following example processArgs function takes
+  // the first argument explicitly and gathers the rest into array called rest;
+  // then it logs that first element and calls itself with spreaded out rest array
+  function processArgs(first, ...rest) {
     console.log(first);
     if (rest.length) {
       processArgs(...rest);
     }
   };
 
-  processArgs(...args); // A B C D
+  // ... in front of an array spreads it out into individual values
+  processArgs(...['A', 'B', 'C', 'D']); // A B C D
+})();
+
+(function spreadAndRest2() {
+  function newWay(...args) {
+    // log as an array
+    console.log('Array: ', args);
+    // log as individual values
+    console.log('Variables: ', ...args);
+  }
+
+  function oldWay() {
+    var args = window.Array.prototype.slice.call(arguments);
+    // log as an array
+    console.log('Array: ', args);
+    // log as individual values
+    var log = console.log.bind(window.console, 'Variables: ');
+    args.forEach(function (arg) {
+      log = log.bind(window.console, arg);
+    });
+    log();
+  }
+
+  newWay(1, 2, 3, 4, 5);
+  oldWay(1, 2, 3, 4, 5);
 })();
 
 
-// 7. Named params
+// 8. Named params
 // ---
 (function namedParams() {
   var stringValue = 'foo bar.';
@@ -129,7 +217,7 @@
 })();
 
 
-// 8. String templates
+// 9. String templates
 // ---
 (function stringTemplates() {
   let name = 'Alex';
@@ -170,7 +258,7 @@
 })();
 
 
-// 9. string API sugar
+// 10. string API sugar
 // ---
 (function stringsSugar() {
   var someString = 'Some text here!';
@@ -180,7 +268,7 @@
 })();
 
 
-// 10. Object literal shorthand
+// 11. Object literal shorthand
 // ---
 (function objectLiteralShorthand() {
   var name = 'Alex';
@@ -197,7 +285,7 @@
 })();
 
 
-// 11. Object.assign === extend, ya!
+// 12. Object.assign === extend, ya!
 (function objectAssign() {
   var obj1 = { key: 'A' };
   var obj2 = { anotherKey: 'B' };
@@ -213,7 +301,7 @@
 })();
 
 
-// 12. Arrays
+// 13. Arrays
 (function arrays() {
   // findIndex
   var arr1 = ['A', 'B', 'C', 'D'];
@@ -243,7 +331,7 @@
 })();
 
 
-// 13. Loops
+// 14. Loops
 // ---
 (function loops() {
   for (let el of [1, 2, 3]) {
@@ -278,7 +366,7 @@
 })();
 
 
-// 14. Generators
+// 15. Generators
 // ---
 (function generators() {
   function* simpleGen() {
@@ -293,7 +381,7 @@
 })();
 
 
-// 15. Set (a collection with no duplicates)
+// 16. Set (a collection with no duplicates)
 // ---
 (function sets() {
   var set = new window.Set();
@@ -315,7 +403,7 @@
 })();
 
 
-// 16. Promises
+// 17. Promises
 // ---
 (function promises() {
   let simplePromise = () => new window.Promise(
